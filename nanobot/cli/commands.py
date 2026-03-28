@@ -623,7 +623,12 @@ def gateway(
 
         from nanobot.gateway.http import create_http_app
 
-        http_app = create_http_app(agent, api_key=http_key)
+        http_app = create_http_app(
+            agent,
+            api_key=http_key,
+            send_progress=config.channels.send_progress,
+            send_tool_hints=config.channels.send_tool_hints,
+        )
         http_server = Server(
             Config(
                 http_app,

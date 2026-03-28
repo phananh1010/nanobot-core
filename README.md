@@ -20,9 +20,10 @@ Default bind is `0.0.0.0` and port **18790** (see `gateway.host`, `gateway.port`
 | Method | Path | Purpose |
 |--------|------|---------|
 | `GET` | `/health` | Liveness: returns `{"status":"ok"}` |
-| `POST` | `/v1/chat` | Send a user message; returns `{"response":"..."}` |
+| `POST` | `/v1/chat` | Send a user message; returns `{"response":"..."}` when the run finishes |
+| `POST` | `/v1/chat/stream` | Same JSON body as `/v1/chat`; response is **NDJSON** (`application/x-ndjson`): optional `progress` / `tool_hint` lines, then a final `done` or `error` line |
 
-### Request body (`POST /v1/chat`)
+### Request body (`POST /v1/chat` and `POST /v1/chat/stream`)
 
 JSON object:
 
@@ -31,7 +32,7 @@ JSON object:
 
 ### Authentication (optional)
 
-If `gateway.http_api_key` is set in config, every `POST /v1/chat` must include the same secret in either header:
+If `gateway.http_api_key` is set in config, every `POST` to `/v1/chat` or `/v1/chat/stream` must include the same secret in either header:
 
 - `Authorization: Bearer <your-key>`, or
 - `X-API-Key: <your-key>`
@@ -51,6 +52,16 @@ curl -s http://127.0.0.1:18790/v1/chat \
   -H 'Content-Type: application/json' \
   -d '{"message":"Hello"}'
 ```
+
+Streaming (NDJSON; use `-N` so chunks print as they arrive):
+
+```bash
+curl -N -s http://127.0.0.1:18790/v1/chat/stream \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Hello"}'
+```
+
+Each line is a JSON object: `{"type":"progress","text":"..."}`, optional `{"type":"tool_hint","text":"..."}`, then `{"type":"done","response":"..."}`. Progress and tool hints follow `channels.sendProgress` and `channels.sendToolHints` in your config.
 
 Chat with a named session:
 
