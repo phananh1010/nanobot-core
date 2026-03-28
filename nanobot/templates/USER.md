@@ -4,9 +4,9 @@ Information about the user to help personalize interactions.
 
 ## Basic Information
 
-- **Name**: (your name)
-- **Timezone**: (your timezone, e.g., UTC+8)
-- **Language**: (preferred language)
+- **Name**: John Smith
+- **Timezone**: US EAST
+- **Language**: English
 
 ## Preferences
 
@@ -14,11 +14,11 @@ Information about the user to help personalize interactions.
 
 - [ ] Casual
 - [ ] Professional
-- [ ] Technical
+- [x] Technical
 
 ### Response Length
 
-- [ ] Brief and concise
+- [x] Brief and concise
 - [ ] Detailed explanations
 - [ ] Adaptive based on question
 
@@ -26,11 +26,11 @@ Information about the user to help personalize interactions.
 
 - [ ] Beginner
 - [ ] Intermediate
-- [ ] Expert
+- [x] Expert
 
 ## Work Context
 
-- **Primary Role**: (your role, e.g., developer, researcher)
+- **Primary Role**: developer, researcher
 - **Main Projects**: (what you're working on)
 - **Tools You Use**: (IDEs, languages, frameworks)
 

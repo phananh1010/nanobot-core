@@ -368,4 +368,3 @@ class WecomChannel(BaseChannel):
 
         except Exception as e:
             logger.error("Error sending WeCom message: {}", e)
-            raise

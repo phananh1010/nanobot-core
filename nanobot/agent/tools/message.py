@@ -42,12 +42,7 @@ class MessageTool(Tool):
 
     @property
     def description(self) -> str:
-        return (
-            "Send a message to the user, optionally with file attachments. "
-            "This is the ONLY way to deliver files (images, documents, audio, video) to the user. "
-            "Use the 'media' parameter with file paths to attach files. "
-            "Do NOT use read_file to send files — that only reads content for your own analysis."
-        )
+        return "Send a message to the user. Use this when you want to communicate something."
 
     @property
     def parameters(self) -> dict[str, Any]:

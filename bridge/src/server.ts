@@ -12,17 +12,6 @@ interface SendCommand {
   text: string;
 }
 
-interface SendMediaCommand {
-  type: 'send_media';
-  to: string;
-  filePath: string;
-  mimetype: string;
-  caption?: string;
-  fileName?: string;
-}
-
-type BridgeCommand = SendCommand | SendMediaCommand;
-
 interface BridgeMessage {
   type: 'message' | 'status' | 'qr' | 'error';
   [key: string]: unknown;
@@ -83,7 +72,7 @@ export class BridgeServer {
 
     ws.on('message', async (data) => {
       try {
-        const cmd = JSON.parse(data.toString()) as BridgeCommand;
+        const cmd = JSON.parse(data.toString()) as SendCommand;
         await this.handleCommand(cmd);
         ws.send(JSON.stringify({ type: 'sent', to: cmd.to }));
       } catch (error) {
@@ -103,13 +92,9 @@ export class BridgeServer {
     });
   }
 
-  private async handleCommand(cmd: BridgeCommand): Promise<void> {
-    if (!this.wa) return;
-
-    if (cmd.type === 'send') {
+  private async handleCommand(cmd: SendCommand): Promise<void> {
+    if (cmd.type === 'send' && this.wa) {
       await this.wa.sendMessage(cmd.to, cmd.text);
-    } else if (cmd.type === 'send_media') {
-      await this.wa.sendMedia(cmd.to, cmd.filePath, cmd.mimetype, cmd.caption, cmd.fileName);
     }
   }
 
