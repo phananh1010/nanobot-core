@@ -65,7 +65,7 @@ resource "aws_security_group" "nanobot" {
   }
 
   ingress {
-    description = "HTTP (nginx → redirect to HTTPS)"
+    description = "HTTP (nginx redirects to HTTPS)"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
