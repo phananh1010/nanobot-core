@@ -1,0 +1,41 @@
+[Unit]
+Description=nanobot AI assistant gateway
+Documentation=https://github.com/your-org/nanobot-core
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__NANOBOT_USER__
+Group=__NANOBOT_USER__
+WorkingDirectory=__REPO_DIR__
+
+# Refresh secrets from SSM before each start
+ExecStartPre=/usr/local/bin/nanobot-fetch-secrets
+
+# Source provider API keys from the secrets env file
+EnvironmentFile=-/etc/nanobot/secrets.env
+
+# Runtime environment
+Environment=HOME=__NANOBOT_HOME__
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+
+# Start nanobot gateway (config lives at ~/.nanobot/config.json)
+ExecStart=__PYTHON_BIN__ -m nanobot gateway
+
+# Restart on unexpected exit; back off to avoid crash loops
+Restart=on-failure
+RestartSec=10s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+# Give channels time to shut down cleanly
+TimeoutStopSec=30
+
+# Security hardening (best-effort on t2/t4g)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
