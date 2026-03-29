@@ -1,0 +1,22 @@
+# Local tfvars — never commit; contains ssh_public_key and any sensitive overrides
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+
+# Terraform working directory
+.terraform/
+.terraform.lock.hcl
+
+# Local state (only present when NOT using the S3 backend)
+terraform.tfstate
+terraform.tfstate.backup
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Override files (local experiments)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
