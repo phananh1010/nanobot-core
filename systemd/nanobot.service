@@ -1,6 +1,6 @@
 [Unit]
 Description=nanobot AI assistant gateway
-Documentation=https://github.com/your-org/nanobot-core
+Documentation=https://github.com/phananh1010/nanobot-core
 After=network-online.target
 Wants=network-online.target
 
@@ -10,8 +10,8 @@ User=__NANOBOT_USER__
 Group=__NANOBOT_USER__
 WorkingDirectory=__REPO_DIR__
 
-# Refresh secrets from SSM before each start
-ExecStartPre=/usr/local/bin/nanobot-fetch-secrets
+# Refresh secrets from SSM before each start (runs as root; script writes /etc/nanobot/secrets.env)
+ExecStartPre=+/usr/local/bin/nanobot-fetch-secrets
 
 # Source provider API keys from the secrets env file
 EnvironmentFile=-/etc/nanobot/secrets.env

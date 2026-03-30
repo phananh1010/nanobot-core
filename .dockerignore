@@ -25,5 +25,6 @@ botpy.log
 nano.*.save
 infra/
 systemd/
+tmp/
 README.md
 LICENSE

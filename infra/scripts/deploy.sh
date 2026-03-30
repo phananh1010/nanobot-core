@@ -41,11 +41,16 @@ else
     "$PYTHON_BIN" -m pip install -e "$REPO_DIR" --quiet
 fi
 
-# 3. Refresh secrets from SSM
+# 3. Reinstall systemd unit from repo (keeps ExecStartPre=+ and other unit changes in sync)
+echo "→ Installing systemd unit from repo..."
+sudo env REPO_DIR="$REPO_DIR" NANOBOT_USER="ubuntu" NANOBOT_HOME="/home/ubuntu" \
+    bash "$REPO_DIR/infra/scripts/install_nanobot_systemd_unit.sh"
+
+# 4. Refresh secrets from SSM
 echo "→ Refreshing secrets..."
 sudo /usr/local/bin/nanobot-fetch-secrets || echo "   WARNING: secret refresh failed"
 
-# 4. Restart service
+# 5. Restart service
 echo "→ Restarting $SERVICE service..."
 sudo systemctl restart "$SERVICE"
 sleep 3

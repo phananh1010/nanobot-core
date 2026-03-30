@@ -192,24 +192,22 @@ fi
 
 # ── 8. Install systemd service ────────────────────────────────────────────────
 
-cp "$REPO_DIR/systemd/nanobot.service" /etc/systemd/system/nanobot.service
+export PYTHON_BIN
+NANOBOT_USER="$NANOBOT_USER" NANOBOT_HOME="$NANOBOT_HOME" REPO_DIR="$REPO_DIR" \
+    bash "$REPO_DIR/infra/scripts/install_nanobot_systemd_unit.sh"
 
-# Patch service to use the correct python binary and user
-sed -i "s|__NANOBOT_USER__|$NANOBOT_USER|g"  /etc/systemd/system/nanobot.service
-sed -i "s|__NANOBOT_HOME__|$NANOBOT_HOME|g"  /etc/systemd/system/nanobot.service
-sed -i "s|__REPO_DIR__|$REPO_DIR|g"          /etc/systemd/system/nanobot.service
-sed -i "s|__PYTHON_BIN__|$PYTHON_BIN|g"      /etc/systemd/system/nanobot.service
-
-systemctl daemon-reload
 systemctl enable nanobot.service
 systemctl start  nanobot.service || true   # first-start may fail if secrets not yet set; that is expected
 
 # ── 9. nginx reverse proxy ────────────────────────────────────────────────────
 
+# nginx requires at least one server_name token; "_" is the usual catch-all when no domain is set
+NGINX_SERVER_NAME="$${DOMAIN:-_}"
+
 cat > "$NGINX_CONF" << NGINX_EOF
 server {
     listen 80;
-    server_name $DOMAIN;
+    server_name $NGINX_SERVER_NAME;
 
     location /health {
         proxy_pass         http://127.0.0.1:$GATEWAY_PORT/health;

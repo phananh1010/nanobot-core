@@ -61,8 +61,12 @@ resource "aws_instance" "nanobot" {
   tags = { Name = "${local.name_prefix}-instance" }
 
   lifecycle {
-    # Prevent accidental replacement when only user_data changes (re-provisioning
-    # is done via deploy.sh, not by destroying the instance).
+    # EC2 only runs user_data on first boot; changing this template does not
+    # re-bootstrap existing instances. We ignore user_data drift so a template
+    # update does not force instance replacement on every apply. To bake a new
+    # user_data into a fresh instance: terraform apply -replace=aws_instance.nanobot
+    # For running VMs, pull and run infra/scripts/deploy.sh (it reinstalls the
+    # systemd unit from the repo on every deploy).
     ignore_changes = [user_data]
   }
 }

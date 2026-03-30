@@ -33,3 +33,7 @@ infra/terraform/terraform.tfstate
 infra/terraform/terraform.tfstate.backup
 infra/terraform/*.tfvars
 infra/terraform/*.tfvars.json
+
+
+#user temp working dir
+tmp/

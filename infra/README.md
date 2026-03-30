@@ -61,7 +61,7 @@ Elastic IP (static, free while attached)
               ... (all secrets)
 ```
 
-The instance never stores credentials on disk. On each service start, `ExecStartPre` calls `/usr/local/bin/nanobot-fetch-secrets` which pulls all `/nanobot/*` SSM parameters and writes them to `/etc/nanobot/secrets.env` (mode 600). The systemd unit reads that file via `EnvironmentFile=`.
+The instance never stores credentials on disk. On each service start, `ExecStartPre=+` runs `/usr/local/bin/nanobot-fetch-secrets` as root; it pulls all `/nanobot/*` SSM parameters and writes `/etc/nanobot/secrets.env` (mode 600). The systemd unit reads that file via `EnvironmentFile=`.
 
 ---
 
@@ -78,13 +78,14 @@ infra/
 │   ├── ec2.tf           # Ubuntu 22.04 AMI lookup, key pair, EC2 instance, EBS data volume
 │   └── secrets.tf       # SSM Parameter Store placeholders for all provider + channel secrets
 └── scripts/
-    ├── user_data.sh     # EC2 first-boot bootstrap (rendered by Terraform templatefile)
-    └── deploy.sh        # Iterative deploy: git pull → sync deps → refresh secrets → restart
+    ├── user_data.sh                    # EC2 first-boot bootstrap (rendered by Terraform templatefile)
+    ├── install_nanobot_systemd_unit.sh # Copy systemd unit from repo; used by user_data + deploy.sh
+    └── deploy.sh                       # git pull → deps → systemd unit → secrets → restart
 ```
 
 ```
 systemd/
-└── nanobot.service      # systemd unit installed by user_data.sh
+└── nanobot.service      # systemd unit installed by install_nanobot_systemd_unit.sh
 ```
 
 ```
@@ -180,15 +181,16 @@ Steps on the instance:
 
 1. `git pull` the current branch
 2. `uv sync` to pick up any new dependencies
-3. `/usr/local/bin/nanobot-fetch-secrets` to refresh `/etc/nanobot/secrets.env`
-4. `systemctl restart nanobot` and verify it is active
+3. `install_nanobot_systemd_unit.sh` to copy `systemd/nanobot.service` into `/etc/systemd/system/` (includes `ExecStartPre=+` so secret fetch runs as root)
+4. `/usr/local/bin/nanobot-fetch-secrets` to refresh `/etc/nanobot/secrets.env`
+5. `systemctl restart nanobot` and verify it is active
 
 ---
 
 ## Systemd unit (`systemd/nanobot.service`)
 
 ```
-ExecStartPre=/usr/local/bin/nanobot-fetch-secrets
+ExecStartPre=+/usr/local/bin/nanobot-fetch-secrets
 EnvironmentFile=-/etc/nanobot/secrets.env
 ExecStart=<python> -m nanobot gateway
 Restart=on-failure
@@ -196,7 +198,7 @@ RestartSec=10s
 StartLimitBurst=5 / 120s
 ```
 
-The `ExecStartPre` ensures secrets are always fresh before each start (important after an API key rotation). The `-` prefix on `EnvironmentFile` means the service still starts even if the file is temporarily absent.
+The `+` prefix runs `nanobot-fetch-secrets` as root so it can write `/etc/nanobot/secrets.env` while the main process still runs as `User=ubuntu`. The `ExecStartPre` ensures secrets are always fresh before each start (important after an API key rotation). The `-` prefix on `EnvironmentFile` means the service still starts even if the file is temporarily absent.
 
 ---
 
