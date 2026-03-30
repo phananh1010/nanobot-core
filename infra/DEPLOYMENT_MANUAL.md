@@ -341,7 +341,7 @@ SSH into the instance and run the interactive onboarding wizard to configure cha
 ssh ubuntu@$(terraform output -raw public_ip)
 
 cd /opt/nanobot
-python -m nanobot onboard
+.venv/bin/python -m nanobot onboard
 
 sudo systemctl restart nanobot
 ```
