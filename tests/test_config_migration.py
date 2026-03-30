@@ -130,3 +130,29 @@ def test_onboard_refresh_backfills_missing_channel_fields(tmp_path, monkeypatch)
     assert result.exit_code == 0
     saved = json.loads(config_path.read_text(encoding="utf-8"))
     assert saved["channels"]["qq"]["msgFormat"] == "plain"
+
+
+def test_env_var_fills_empty_api_key_from_config_json(tmp_path, monkeypatch) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps({"providers": {"openrouter": {"apiKey": ""}}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", "sk-from-env")
+
+    config = load_config(config_path)
+
+    assert config.providers.openrouter.api_key == "sk-from-env"
+
+
+def test_explicit_api_key_in_json_overrides_env_var(tmp_path, monkeypatch) -> None:
+    config_path = tmp_path / "config.json"
+    config_path.write_text(
+        json.dumps({"providers": {"openrouter": {"apiKey": "sk-from-json"}}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", "sk-from-env")
+
+    config = load_config(config_path)
+
+    assert config.providers.openrouter.api_key == "sk-from-json"

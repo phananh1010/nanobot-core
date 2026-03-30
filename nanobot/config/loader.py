@@ -40,6 +40,7 @@ def load_config(config_path: Path | None = None) -> Config:
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
             data = _migrate_config(data)
+            _strip_empty_credentials(data)
             return Config.model_validate(data)
         except (json.JSONDecodeError, ValueError) as e:
             print(f"Warning: Failed to load config from {path}: {e}")
@@ -63,6 +64,16 @@ def save_config(config: Config, config_path: Path | None = None) -> None:
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def _strip_empty_credentials(data: dict) -> None:
+    """Remove empty ``apiKey``/``httpApiKey`` so env vars from secrets.env can fill them."""
+    for key in list(data):
+        value = data[key]
+        if key in ("apiKey", "httpApiKey") and value == "":
+            del data[key]
+        elif isinstance(value, dict):
+            _strip_empty_credentials(value)
 
 
 def _migrate_config(data: dict) -> dict:
