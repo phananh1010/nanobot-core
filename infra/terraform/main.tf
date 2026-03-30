@@ -8,24 +8,18 @@ terraform {
     }
   }
 
-  # Remote state in S3 — create the bucket once before running `terraform init`:
-  #   aws s3 mb s3://nanobot-tfstate-<YOUR_ACCOUNT_ID> --region <YOUR_REGION>
-  #   aws dynamodb create-table \
-  #     --table-name nanobot-tfstate-lock \
-  #     --attribute-definitions AttributeName=LockID,AttributeType=S \
-  #     --key-schema AttributeName=LockID,KeyType=HASH \
-  #     --billing-mode PAY_PER_REQUEST \
-  #     --region <YOUR_REGION>
+  # Remote state in S3 — see infra/DEPLOYMENT_MANUAL.md "Step 1" for AWS CLI setup, then
+  # uncomment the backend block below. bucket must match the created bucket; region must
+  # match the bucket's region. If you already ran terraform init with local state, use:
+  #   terraform init -migrate-state
   #
-  # Then uncomment this block and fill in bucket/region:
-  #
-  # backend "s3" {
-  #   bucket         = "nanobot-tfstate-<YOUR_ACCOUNT_ID>"
-  #   key            = "nanobot/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   dynamodb_table = "nanobot-tfstate-lock"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "nanobot-tfstate-049365253529"
+    key            = "nanobot/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "nanobot-tfstate-lock"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
