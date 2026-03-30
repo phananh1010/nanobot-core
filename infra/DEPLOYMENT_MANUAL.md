@@ -277,14 +277,27 @@ If it stalls, check for errors in the log.
 
 ## Step 6 — Reload secrets and start the service
 
+**Prerequisite:** [Step 5](#step-5--wait-for-bootstrap-to-complete) must have finished successfully (`=== nanobot EC2 bootstrap complete ===` in `/var/log/nanobot-init.log`). That run installs `/etc/systemd/system/nanobot.service`. If you try the commands below before bootstrap completes, or if bootstrap failed, you will see `Unit nanobot.service not found` — fix bootstrap first (see troubleshooting below).
+
 The bootstrap fetches secrets at startup, but the SSM values were `REPLACE_ME` at that point (you filled them in Step 4 after the instance booted). Refresh them now:
 
 ```bash
 ssh ubuntu@$(terraform output -raw public_ip)
 
+# Optional: confirm the unit exists (skip if you already know bootstrap succeeded)
+test -f /etc/systemd/system/nanobot.service && echo "unit OK" || echo "MISSING — bootstrap did not install the unit; see Step 5 and troubleshooting below"
+
 sudo /usr/local/bin/nanobot-fetch-secrets
 sudo systemctl restart nanobot
 sudo systemctl status nanobot    # should show: active (running)
+```
+
+If the unit file is missing but `/opt/nanobot` is a full git checkout (bootstrap partially succeeded), install it and reload:
+
+```bash
+sudo bash /opt/nanobot/infra/scripts/install_nanobot_systemd_unit.sh
+sudo systemctl enable nanobot.service
+sudo systemctl start nanobot
 ```
 
 Check the gateway is up:
@@ -313,6 +326,7 @@ Common causes:
 
 | Symptom | Cause | Fix |
 |---|---|---|
+| `Failed to restart nanobot.service: Unit nanobot.service not found` | Bootstrap not finished, bootstrap failed before the systemd step, or `/opt/nanobot` missing | Finish [Step 5](#step-5--wait-for-bootstrap-to-complete); read `/var/log/nanobot-init.log` for errors. If the repo exists under `/opt/nanobot`, run `sudo bash /opt/nanobot/infra/scripts/install_nanobot_systemd_unit.sh` then `sudo systemctl enable --now nanobot` |
 | `Permission denied` on `/etc/nanobot/secrets.env` | `ExecStartPre` ran as `ubuntu` instead of root | Ensure the service uses `ExecStartPre=+/usr/local/bin/nanobot-fetch-secrets` (note the `+` prefix) |
 | `Start request repeated too quickly` | systemd hit its restart burst limit after repeated failures | Fix the underlying error, then `sudo systemctl reset-failed nanobot` before restarting |
 | nginx: `invalid number of arguments in "server_name"` | `domain_name` was left empty in Terraform | The bootstrap should default to `server_name _;` — re-run `user_data.sh` or manually fix `/etc/nginx/sites-available/nanobot` |
