@@ -24,8 +24,8 @@ variable "instance_type" {
     Free-tier eligible (first 12 months): t2.micro (1 vCPU, 1 GB).
     Post free-tier cheapest with 1 GB RAM: t4g.micro (ARM, ~$6/mo on-demand).
   EOT
-  type    = string
-  default = "t2.micro"
+  type        = string
+  default     = "t2.micro"
 }
 
 variable "ami_architecture" {
@@ -89,4 +89,25 @@ variable "certbot_email" {
   description = "Email address for Let's Encrypt certificate registration. Required when domain_name is set."
   type        = string
   default     = ""
+}
+
+# ── Route 53 (existing hosted zone) ────────────────────────────────────────────
+
+variable "route53_zone_name" {
+  description = <<-EOT
+    Existing Route 53 public hosted zone name (e.g. mintanalytic.com), without a trailing dot.
+    Set to "" to skip creating DNS records in Terraform (you manage DNS elsewhere).
+  EOT
+  type        = string
+  default     = "mintanalytic.com"
+}
+
+variable "route53_a_records" {
+  description = <<-EOT
+    Fully qualified names for A records pointing at the deployment Elastic IP.
+    Include the same hostname as domain_name if you use nginx/Let's Encrypt on that name
+    (e.g. ["mintanalytic.com"] or ["bot.mintanalytic.com", "www.mintanalytic.com"]).
+  EOT
+  type        = list(string)
+  default     = ["mintanalytic.com"]
 }

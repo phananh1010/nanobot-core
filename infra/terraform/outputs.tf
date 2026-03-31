@@ -3,6 +3,11 @@ output "public_ip" {
   value       = aws_eip.nanobot.public_ip
 }
 
+output "route53_a_records" {
+  description = "DNS names managed by Terraform that point to the Elastic IP (empty if route53_zone_name is unset)."
+  value       = var.route53_zone_name != "" ? sort([for r in aws_route53_record.nanobot : r.name]) : []
+}
+
 output "instance_id" {
   description = "EC2 instance ID."
   value       = aws_instance.nanobot.id
