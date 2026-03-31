@@ -212,6 +212,8 @@ ssm_prefix      = "/nanobot"
 
 After `terraform apply`, all SSM parameters contain `REPLACE_ME`. Fill in the ones you need. **You only need to set the providers you actually use.**
 
+For a copy-paste template, see [`tmp/examples/set_secrets.txt`](tmp/examples/set_secrets.txt). A common workflow is to copy it to `tmp/set_secret.txt` in your clone, replace the placeholders with real keys, then run the commands (`tmp/` is gitignored so secrets stay local). **Always set `AWS_REGION` before running `aws`**, e.g. `export AWS_REGION=us-east-1` — if `$AWS_REGION` is empty, you will see `aws: argument --region: expected one argument`.
+
 ```bash
 export AWS_REGION=us-east-1
 
